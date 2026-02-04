@@ -40,7 +40,7 @@ func BaseLayout(repoPath string) tview.Primitive {
 
 	// MAIN ROW (tree + preview)
 	top := tview.NewFlex().
-		AddItem(treeFlex, 0, 1, false).
+		AddItem(treeFlex, 0, 1, true).
 		AddItem(previewFlex, 0, 3, false)
 
 	bottom := tview.NewFlex().
@@ -49,7 +49,7 @@ func BaseLayout(repoPath string) tview.Primitive {
 
 	// ROOT LAYOUT
 	root := tview.NewFlex().SetDirection(tview.FlexRow)
-	root.AddItem(top, 0, 3, false)
+	root.AddItem(top, 0, 3, true)
 	root.AddItem(bottom, 3, 0, false)
 
 	return root

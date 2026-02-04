@@ -18,6 +18,7 @@ const (
 	FocusSidebar
 	UnfocusSidebar
 	ToggleSidebar
+	Select
 )
 
 func (c Command) String() string {
@@ -48,6 +49,8 @@ func (c Command) String() string {
 		return "ToggleSidebar"
 	case UnfocusSidebar:
 		return "UnfocusSidebar"
+	case Select:
+		return "Select"
 	}
 
 	return "Unknown"
