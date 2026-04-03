@@ -19,6 +19,16 @@ const (
 	UnfocusSidebar
 	ToggleSidebar
 	Select
+
+	// Preview scrolling
+	ScrollUp
+	ScrollDown
+	ScrollTop
+	ScrollBottom
+
+	// Focus switching
+	FocusPreview
+	FocusTree
 )
 
 func (c Command) String() string {
@@ -32,7 +42,7 @@ func (c Command) String() string {
 	case MoveDown:
 		return "MoveDown"
 	case MoveLeft:
-		return "MoveRight"
+		return "MoveLeft"
 	case MoveRight:
 		return "MoveRight"
 
@@ -51,6 +61,22 @@ func (c Command) String() string {
 		return "UnfocusSidebar"
 	case Select:
 		return "Select"
+
+	// Preview scrolling
+	case ScrollUp:
+		return "ScrollUp"
+	case ScrollDown:
+		return "ScrollDown"
+	case ScrollTop:
+		return "ScrollTop"
+	case ScrollBottom:
+		return "ScrollBottom"
+
+	// Focus switching
+	case FocusPreview:
+		return "FocusPreview"
+	case FocusTree:
+		return "FocusTree"
 	}
 
 	return "Unknown"

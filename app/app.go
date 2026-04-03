@@ -47,7 +47,7 @@ func init() {
 }
 
 func (a *Application) Run(repoPath string) error {
-	layout := ui.BaseLayout(repoPath)
+	layout := ui.BaseLayout(repoPath, a.app)
 
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Rune() == 'q' || event.Key() == tcell.KeyCtrlC {

@@ -53,3 +53,36 @@ var TreeKeyMap = keymap.Map{
 		Description: "Toggle selection",
 	},
 }
+
+var PreviewKeyMap = keymap.Map{
+	{
+		Key:         keymap.Key{Char: 'j'},
+		Cmd:         commands.ScrollDown,
+		Description: "Scroll down",
+	},
+	{
+		Key:         keymap.Key{Code: tcell.KeyDown},
+		Cmd:         commands.ScrollDown,
+		Description: "Scroll down",
+	},
+	{
+		Key:         keymap.Key{Char: 'k'},
+		Cmd:         commands.ScrollUp,
+		Description: "Scroll up",
+	},
+	{
+		Key:         keymap.Key{Code: tcell.KeyUp},
+		Cmd:         commands.ScrollUp,
+		Description: "Scroll up",
+	},
+	{
+		Key:         keymap.Key{Char: 'g'},
+		Cmd:         commands.ScrollTop,
+		Description: "Scroll to top",
+	},
+	{
+		Key:         keymap.Key{Char: 'G'},
+		Cmd:         commands.ScrollBottom,
+		Description: "Scroll to bottom",
+	},
+}
