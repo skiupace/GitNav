@@ -26,6 +26,9 @@ const (
 	ScrollTop
 	ScrollBottom
 
+	// Editor
+	OpenEditor
+
 	// Focus switching
 	FocusPreview
 	FocusTree
@@ -71,6 +74,10 @@ func (c Command) String() string {
 		return "ScrollTop"
 	case ScrollBottom:
 		return "ScrollBottom"
+
+	// Editor
+	case OpenEditor:
+		return "OpenEditor"
 
 	// Focus switching
 	case FocusPreview:

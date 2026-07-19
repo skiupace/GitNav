@@ -36,6 +36,48 @@ func NewPreviewPanel() *PreviewPanel {
 
 	pp := &PreviewPanel{TextView: tv}
 
+	// Draw a visual scrollbar on the right inner edge
+	tv.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
+		innerX := x + 1
+		innerY := y + 1
+		innerW := width - 2
+		innerH := height - 2
+
+		totalLines := tv.GetOriginalLineCount()
+		if totalLines > innerH {
+			scrollRow, _ := tv.GetScrollOffset()
+
+			// Thumb height proportional to visible/total ratio
+			thumbHeight := innerH * innerH / totalLines
+			if thumbHeight < 1 {
+				thumbHeight = 1
+			}
+
+			// Thumb position along the track
+			maxOffset := totalLines - innerH
+			thumbPos := 0
+			if maxOffset > 0 {
+				thumbPos = scrollRow * (innerH - thumbHeight) / maxOffset
+			}
+
+			trackX := innerX + innerW // rightmost inner column
+			trackStyle := tcell.StyleDefault.Foreground(tcell.ColorGray)
+			thumbStyle := tcell.StyleDefault.Foreground(tcell.ColorWhite)
+
+			for i := 0; i < innerH; i++ {
+				style := trackStyle
+				ch := '│'
+				if i >= thumbPos && i < thumbPos+thumbHeight {
+					style = thumbStyle
+					ch = '█'
+				}
+				screen.SetContent(trackX, innerY+i, ch, nil, style)
+			}
+		}
+
+		return innerX, innerY, innerW, innerH
+	})
+
 	// Input capture for vim scrolling and arrow keys
 	tv.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		cmd := PreviewKeyMap.Resolve(event)
@@ -57,7 +99,6 @@ func NewPreviewPanel() *PreviewPanel {
 			tv.ScrollToEnd()
 			return nil
 		}
-
 		return event
 	})
 

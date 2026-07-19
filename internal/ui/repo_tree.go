@@ -18,9 +18,8 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 		SetRoot(root).
 		SetCurrentNode(root)
 
-	tree.SetSelectedFunc(func(node *tview.TreeNode) {
-		toggleExpansion(node)
-	})
+	// Note: SetSelectedFunc is set by BaseLayout in layout.go
+	// to handle both directory toggling and opening files in editor.
 
 	tree.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		cmd := TreeKeyMap.Resolve(event)

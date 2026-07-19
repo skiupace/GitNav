@@ -2,6 +2,7 @@ package ui
 
 import (
 	"os"
+	"os/exec"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -41,6 +42,17 @@ func BaseLayout(repoPath string, app *tview.Application) tview.Primitive {
 		}
 	}
 
+	// Open file in neovim, suspend tview and resume after editor closes
+	openInEditor := func(filePath string) {
+		app.Suspend(func() {
+			cmd := exec.Command("nvim", filePath)
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			_ = cmd.Run()
+		})
+	}
+
 	// Wire tree node changes to update the preview
 	tree.SetChangedFunc(func(node *tview.TreeNode) {
 		ref := node.GetReference()
@@ -60,6 +72,29 @@ func BaseLayout(repoPath string, app *tview.Application) tview.Primitive {
 		}
 
 		preview.UpdatePreview(filePath)
+	})
+
+	// Handle Enter on tree: open file in editor, toggle dirs
+	tree.SetSelectedFunc(func(node *tview.TreeNode) {
+		ref := node.GetReference()
+		if ref == nil {
+			return
+		}
+		filePath, ok := ref.(string)
+		if !ok {
+			return
+		}
+
+		info, err := os.Stat(filePath)
+		if err != nil {
+			return
+		}
+
+		if info.IsDir() {
+			toggleExpansion(node)
+		} else {
+			openInEditor(filePath)
+		}
 	})
 
 	// SEARCH BOX (bottom-left)
@@ -90,15 +125,15 @@ func BaseLayout(repoPath string, app *tview.Application) tview.Primitive {
 	root.AddItem(top, 0, 3, true)
 	root.AddItem(bottom, 3, 0, false)
 
-	// Tab / Shift+Tab focus switching at the root level
+	// h/l and Tab/Shift+Tab focus switching at the root level
 	root.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyTab || event.Key() == tcell.KeyRight {
+		if event.Key() == tcell.KeyTab {
 			focusIndex = (focusIndex + 1) % len(panels)
 			updateFocusBorders(focusIndex)
 			app.SetFocus(panels[focusIndex])
 			return nil
 		}
-		if event.Key() == tcell.KeyBacktab || event.Key() == tcell.KeyLeft {
+		if event.Key() == tcell.KeyBacktab {
 			focusIndex = (focusIndex - 1 + len(panels)) % len(panels)
 			updateFocusBorders(focusIndex)
 			app.SetFocus(panels[focusIndex])
