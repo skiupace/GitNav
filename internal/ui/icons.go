@@ -52,14 +52,14 @@ func GetIcon(filename string, isDir bool) (string, tcell.Color) {
 		return "", tcell.ColorBlue
 	case ".java":
 		return "", tcell.ColorRed
+	case ".php":
+		return "", tcell.ColorLightCyan
 	case ".html":
-		return "", tcell.ColorOrange // Only exists in some versions, fallback to Hex if needed or just risk it?
-		// Actually tcell.ColorOrange might NOT exist. safe is NewHexColor or standard.
-		// Let's use NewHexColor for these to be safe if I want "Premium"
+		return "", tcell.ColorOrange
 	case ".css":
 		return "", tcell.ColorBlue
 	case ".scss", ".sass":
-		return "", tcell.ColorFuchsia // Pink substitute
+		return "", tcell.ColorFuchsia
 	case ".json":
 		return "", tcell.ColorYellow
 	case ".yaml", ".yml":

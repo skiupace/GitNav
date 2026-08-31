@@ -32,6 +32,9 @@ const (
 	// Focus switching
 	FocusPreview
 	FocusTree
+
+	// UI
+	Help
 )
 
 func (c Command) String() string {
@@ -84,6 +87,10 @@ func (c Command) String() string {
 		return "FocusPreview"
 	case FocusTree:
 		return "FocusTree"
+
+	// UI
+	case Help:
+		return "Help"
 	}
 
 	return "Unknown"

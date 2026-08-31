@@ -9,16 +9,11 @@ import (
 
 var (
 	App    *Application
-	Styles *Theme
+	Styles *tview.Theme
 )
 
 type Application struct {
 	app *tview.Application
-}
-
-type Theme struct {
-	tview.Theme
-	SidebarTitleBorderColor string
 }
 
 func init() {
@@ -26,31 +21,33 @@ func init() {
 		app: tview.NewApplication(),
 	}
 
-	Styles = &Theme{
-		Theme: tview.Theme{
-			PrimitiveBackgroundColor:    tcell.ColorDefault,
-			ContrastBackgroundColor:     tcell.ColorBlue,
-			MoreContrastBackgroundColor: tcell.ColorGreen,
-			BorderColor:                 tcell.ColorWhite,
-			TitleColor:                  tcell.ColorWhite,
-			GraphicsColor:               tcell.ColorGray,
-			PrimaryTextColor:            tcell.ColorDefault.TrueColor(),
-			SecondaryTextColor:          tcell.ColorYellow,
-			TertiaryTextColor:           tcell.ColorGreen,
-			InverseTextColor:            tcell.ColorWhite,
-			ContrastSecondaryTextColor:  tcell.ColorBlack,
-		},
-		SidebarTitleBorderColor: "#666A7E",
+	// Colors follow the terminal's own theme: backgrounds default, accents
+	// use the 16-color ANSI palette (tcell named colors resolve to palette
+	// indices, so they adapt to the user's color scheme).
+	Styles = &tview.Theme{
+		PrimitiveBackgroundColor:    tcell.ColorDefault,
+		ContrastBackgroundColor:     tcell.ColorDefault,
+		MoreContrastBackgroundColor: tcell.ColorDefault,
+		BorderColor:                 tcell.ColorGray,
+		TitleColor:                  tcell.ColorDefault,
+		GraphicsColor:               tcell.ColorGray,
+		PrimaryTextColor:            tcell.ColorDefault,
+		SecondaryTextColor:          tcell.ColorYellow,
+		TertiaryTextColor:           tcell.ColorGreen,
+		InverseTextColor:            tcell.ColorDefault,
+		ContrastSecondaryTextColor:  tcell.ColorGray,
 	}
 
-	tview.Styles = Styles.Theme
+	tview.Styles = *Styles
 }
 
 func (a *Application) Run(repoPath string) error {
 	layout := ui.BaseLayout(repoPath, a.app)
 
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Rune() == 'q' || event.Key() == tcell.KeyCtrlC {
+		// 'q' is handled by the layout (suppressed while the search
+		// input field has focus); Ctrl+C always quits.
+		if event.Key() == tcell.KeyCtrlC {
 			a.app.Stop()
 			return nil
 		}

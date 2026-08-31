@@ -7,14 +7,14 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
+	"github.com/skiupace/gitnav/commands"
 	"github.com/skiupace/gitnav/internal/git"
 )
 
-func BaseLayout(repoPath string, app *tview.Application) tview.Primitive {
-	// LEFT TREE
+func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	repo, err := git.NewRepo(repoPath)
 	if err != nil {
-		panic("Not a git repository")
+		panic(err)
 	}
 
 	rootNode, err := repo.ScanRepo()
@@ -23,43 +23,23 @@ func BaseLayout(repoPath string, app *tview.Application) tview.Primitive {
 	}
 
 	tree := RepoTree(rootNode)
-
-	// CENTER PREVIEW
 	preview := NewPreviewPanel()
+	stats := NewStatsPanel(repo)
+	search := NewSearchPanel(tree, rootNode, preview)
 
-	// Track focusable panels for Tab cycling
-	panels := []tview.Primitive{tree, preview.TextView}
-	focusIndex := 0
-
-	// Visual focus indicator helper
-	updateFocusBorders := func(idx int) {
-		if idx == 0 {
-			tree.Box.SetBorderColor(tcell.ColorBlue)
-			preview.TextView.SetBorderColor(tcell.ColorGray)
-		} else {
-			tree.Box.SetBorderColor(tcell.ColorGray)
-			preview.TextView.SetBorderColor(tcell.ColorBlue)
-		}
-	}
-
-	// Open file in neovim, suspend tview and resume after editor closes
+	// Open file in the user's editor, suspending tview until it exits.
 	openInEditor := func(filePath string) {
-		app.Suspend(func() {
-			cmd := exec.Command("nvim", filePath)
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
+		a.Suspend(func() {
+			cmd := exec.Command(pickEditor(), filePath)
+			cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 			_ = cmd.Run()
 		})
+		stats.Refresh()
 	}
 
 	// Wire tree node changes to update the preview
 	tree.SetChangedFunc(func(node *tview.TreeNode) {
-		ref := node.GetReference()
-		if ref == nil {
-			return
-		}
-		filePath, ok := ref.(string)
+		filePath, ok := node.GetReference().(string)
 		if !ok {
 			return
 		}
@@ -76,11 +56,7 @@ func BaseLayout(repoPath string, app *tview.Application) tview.Primitive {
 
 	// Handle Enter on tree: open file in editor, toggle dirs
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
-		ref := node.GetReference()
-		if ref == nil {
-			return
-		}
-		filePath, ok := ref.(string)
+		filePath, ok := node.GetReference().(string)
 		if !ok {
 			return
 		}
@@ -97,53 +73,137 @@ func BaseLayout(repoPath string, app *tview.Application) tview.Primitive {
 		}
 	})
 
-	// SEARCH BOX (bottom-left)
-	search := tview.NewBox().
-		SetBorder(true).
-		SetTitleAlign(tview.AlignLeft).
-		SetTitle(" Search ").
-		SetBackgroundColor(tcell.ColorDefault)
-
-	// STATS BOX (bottom-right)
-	stats := tview.NewBox().
-		SetBorder(true).
-		SetTitle(" Repo Statistics ").
-		SetTitleAlign(tview.AlignLeft).
-		SetBackgroundColor(tcell.ColorDefault)
-
 	// MAIN ROW (tree + preview)
 	top := tview.NewFlex().
 		AddItem(tree, 0, 1, true).
 		AddItem(preview.TextView, 0, 3, false)
 
+	// BOTTOM ROW (search + stats). Fixed height: a 1:3 proportional split
+	// inside a 3-row flex gave the search box zero rows.
 	bottom := tview.NewFlex().
-		AddItem(search, 0, 1, false).
-		AddItem(stats, 0, 3, false)
+		AddItem(search.Field, 0, 1, false).
+		AddItem(stats.View, 0, 3, false)
 
 	// ROOT LAYOUT
 	root := tview.NewFlex().SetDirection(tview.FlexRow)
-	root.AddItem(top, 0, 3, true)
+	root.AddItem(top, 0, 1, true)
 	root.AddItem(bottom, 3, 0, false)
 
-	// h/l and Tab/Shift+Tab focus switching at the root level
+	// Focusable panels (tree -> preview -> search); stats is passive.
+	// Conceptually a 2x2 grid: tree, preview / search, (stats).
+	panels := []tview.Primitive{tree, preview.TextView, search.Field}
+	boxes := []*tview.Box{tree.Box, preview.TextView.Box, search.Field.Box}
+	focusIndex := 0
+
+	updateFocusBorders := func(idx int) {
+		for i, b := range boxes {
+			if i == idx {
+				b.SetBorderColor(tcell.ColorBlue)
+			} else {
+				b.SetBorderColor(tcell.ColorGray)
+			}
+		}
+	}
+
+	// Vim-style mode indicator: NORMAL in the panes, INSERT in search.
+	setMode := func(insert bool) {
+		if insert {
+			search.Field.SetTitle(" Search · INSERT ")
+		} else {
+			search.Field.SetTitle(" Search · NORMAL ")
+		}
+	}
+
+	setFocus := func(idx int) {
+		focusIndex = idx
+		a.SetFocus(panels[idx])
+		updateFocusBorders(idx)
+		setMode(idx == 2)
+	}
+
+	// Search hands focus back to the tree (Enter/Esc).
+	search.FocusTree = func() { setFocus(0) }
+
+	// Vim pane navigation: uppercase HJKL and Ctrl+arrows move focus
+	// between panes; lowercase keys stay free for in-pane navigation.
+	moveFocus := func(cmd commands.Command) {
+		switch cmd {
+		case commands.FocusSidebar: // left
+			if focusIndex == 1 {
+				setFocus(0)
+			}
+		case commands.FocusPreview: // right
+			if focusIndex != 1 {
+				setFocus(1)
+			}
+		case commands.Search: // down / insert
+			if focusIndex != 2 {
+				setFocus(2)
+			}
+		case commands.FocusTree: // up
+			if focusIndex == 2 {
+				setFocus(0)
+			}
+		}
+	}
+
+	// Keybinding cheat sheet overlay.
+	helpVisible := false
+	toggleHelp := func() {
+		helpVisible = !helpVisible
+		if helpVisible {
+			// a.SetRoot(HelpPanel(toggleHelp), true)
+		} else {
+			a.SetRoot(root, true)
+			setFocus(focusIndex)
+		}
+	}
+
+	// Global keys: Tab/Shift+Tab cycle panels; '/' 'i' 'H' 'J' 'K' 'L',
+	// Ctrl+arrows and 'q'/'?' act outside the search field, where letters
+	// are reserved for typing.
 	root.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyTab {
-			focusIndex = (focusIndex + 1) % len(panels)
-			updateFocusBorders(focusIndex)
-			app.SetFocus(panels[focusIndex])
+		switch event.Key() {
+		case tcell.KeyTab:
+			setFocus((focusIndex + 1) % len(panels))
+			return nil
+		case tcell.KeyBacktab:
+			setFocus((focusIndex - 1 + len(panels)) % len(panels))
 			return nil
 		}
-		if event.Key() == tcell.KeyBacktab {
-			focusIndex = (focusIndex - 1 + len(panels)) % len(panels)
-			updateFocusBorders(focusIndex)
-			app.SetFocus(panels[focusIndex])
+
+		if a.GetFocus() == search.Field {
+			return event
+		}
+
+		switch cmd := GlobalKeyMap.Resolve(event); cmd {
+		case commands.Quit:
+			a.Stop()
+			return nil
+		case commands.Help:
+			toggleHelp()
+			return nil
+		case commands.FocusSidebar, commands.FocusPreview, commands.FocusTree, commands.Search:
+			moveFocus(cmd)
 			return nil
 		}
+
 		return event
 	})
 
-	// Set initial focus borders
-	updateFocusBorders(0)
+	// Initial focus + mode title
+	setFocus(0)
 
 	return root
+}
+
+// pickEditor returns the editor to open files with: $VISUAL, $EDITOR, or vi.
+func pickEditor() string {
+	if e := os.Getenv("VISUAL"); e != "" {
+		return e
+	}
+	if e := os.Getenv("EDITOR"); e != "" {
+		return e
+	}
+	return "vi"
 }

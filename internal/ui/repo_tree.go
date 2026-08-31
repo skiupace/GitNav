@@ -5,14 +5,14 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+
 	"github.com/skiupace/gitnav/commands"
 	"github.com/skiupace/gitnav/internal/git"
 )
 
+// RepoTree builds the file tree view from the scanned repo data.
 func RepoTree(rootNode *git.Node) *tview.TreeView {
-	root := tview.NewTreeNode("").
-		SetColor(tcell.ColorBlue).
-		SetSelectable(false)
+	root := newRootNode()
 
 	tree := tview.NewTreeView().
 		SetRoot(root).
@@ -30,8 +30,10 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 		case commands.MoveUp:
 			return tcell.NewEventKey(tcell.KeyUp, 0, tcell.ModNone)
 		case commands.MoveLeft:
+			syncFolderIcon(tree.GetCurrentNode(), false)
 			return tcell.NewEventKey(tcell.KeyLeft, 0, tcell.ModNone)
 		case commands.MoveRight:
+			syncFolderIcon(tree.GetCurrentNode(), true)
 			return tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone)
 		case commands.Select:
 			toggleExpansion(tree.GetCurrentNode())
@@ -43,60 +45,77 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 
 	addChildren(root, rootNode)
 
-	title := " " + rootNode.Name + " "
 	tree.Box.SetBorder(true).
 		SetBorderColor(tcell.ColorBlue).
 		SetTitleAlign(tview.AlignLeft).
-		SetTitle(title)
+		SetTitle(" " + rootNode.Name + " ")
 
 	return tree
 }
 
 func addChildren(tnode *tview.TreeNode, gnode *git.Node) {
 	for _, child := range gnode.Children {
-		icon, color := GetIcon(child.Name, child.IsDir)
-
-		// If dir, use GetFolderIcon with default collapsed state (expanded=false)
-		// collapsed -> Open icon (as per inverted logic)
-		if child.IsDir {
-			icon = GetFolderIcon(false)
-		}
-
-		node := tview.NewTreeNode(icon + " " + child.Name).
-			SetReference(child.Path).
-			SetColor(color)
-
-		if child.IsDir {
-			// node.SetColor(tcell.ColorYellow) // handled by GetIcon
-			node.SetExpanded(false)
-		}
-
+		node := newFileNode(child)
 		tnode.AddChild(node)
 
-		// Recursively add child folders/files
 		if child.IsDir {
 			addChildren(node, child)
 		}
 	}
 }
 
+func newRootNode() *tview.TreeNode {
+	return tview.NewTreeNode("").
+		SetColor(tcell.ColorBlue).
+		SetSelectable(false)
+}
+
+func newFileNode(gnode *git.Node) *tview.TreeNode {
+	icon, color := GetIcon(gnode.Name, gnode.IsDir)
+
+	// SetColor also sets the selected background to the icon color, which
+	// reads badly; give the selected state a controlled, theme-friendly
+	// style instead (node color on the palette's gray).
+	node := tview.NewTreeNode(icon + " " + gnode.Name).
+		SetReference(gnode.Path).
+		SetColor(color).
+		SetSelectedTextStyle(tcell.StyleDefault.
+			Foreground(color).
+			Background(tcell.ColorGray))
+
+	if gnode.IsDir {
+		node.SetExpanded(false)
+	}
+
+	return node
+}
+
 func toggleExpansion(node *tview.TreeNode) {
-	if node == nil {
+	if node == nil || len(node.GetChildren()) == 0 {
 		return
 	}
-	// If it has children (i.e., is a directory), toggle expansion
-	if len(node.GetChildren()) > 0 {
-		expanded := !node.IsExpanded()
-		node.SetExpanded(expanded)
 
-		// Update icon based on new state
-		// We need to preserve the name while changing the icon
-		text := node.GetText()
-		parts := strings.SplitN(text, " ", 2)
-		if len(parts) == 2 {
-			name := parts[1]
-			newIcon := GetFolderIcon(expanded)
-			node.SetText(newIcon + " " + name)
-		}
+	expanded := !node.IsExpanded()
+	node.SetExpanded(expanded)
+	node.SetText(GetFolderIcon(expanded) + " " + nodeName(node.GetText()))
+}
+
+// syncFolderIcon pre-updates the folder icon for h/l navigation, since tview
+// expands/collapses nodes itself without notifying us. right=true means the
+// node is about to expand, right=false means it is about to collapse.
+func syncFolderIcon(node *tview.TreeNode, right bool) {
+	if node == nil || len(node.GetChildren()) == 0 {
+		return
 	}
+	if right != node.IsExpanded() {
+		node.SetText(GetFolderIcon(right) + " " + nodeName(node.GetText()))
+	}
+}
+
+// nodeName returns the text after the icon ("icon name" -> "name").
+func nodeName(text string) string {
+	if _, name, ok := strings.Cut(text, " "); ok {
+		return name
+	}
+	return text
 }

@@ -50,7 +50,53 @@ var TreeKeyMap = keymap.Map{
 	{
 		Key:         keymap.Key{Code: tcell.KeyEnter},
 		Cmd:         commands.Select,
-		Description: "Toggle selection",
+		Description: "Open file in editor / toggle folder",
+	},
+}
+
+// GlobalKeyMap binds pane navigation and app-level actions. Vim-style
+// uppercase HJKL and Ctrl+arrows move focus between panes; lowercase keys
+// stay free for in-pane navigation.
+var GlobalKeyMap = keymap.Map{
+	{
+		Key:         keymap.Key{Char: 'H'},
+		Cmd:         commands.FocusSidebar,
+		Description: "Focus tree pane",
+	},
+	{
+		Key:         keymap.Key{Char: 'L'},
+		Cmd:         commands.FocusPreview,
+		Description: "Focus preview pane",
+	},
+	{
+		Key:         keymap.Key{Char: 'J'},
+		Cmd:         commands.Search,
+		Description: "Focus search (insert mode)",
+	},
+	{
+		Key:         keymap.Key{Char: 'K'},
+		Cmd:         commands.FocusTree,
+		Description: "Focus tree (up)",
+	},
+	{
+		Key:         keymap.Key{Char: '/'},
+		Cmd:         commands.Search,
+		Description: "Search files (insert mode)",
+	},
+	{
+		Key:         keymap.Key{Char: 'i'},
+		Cmd:         commands.Search,
+		Description: "Search files (insert mode)",
+	},
+	{
+		Key:         keymap.Key{Char: 'q'},
+		Cmd:         commands.Quit,
+		Description: "Quit",
+	},
+	{
+		Key:         keymap.Key{Char: '?'},
+		Cmd:         commands.Help,
+		Description: "Toggle keybinding cheat sheet",
 	},
 }
 
