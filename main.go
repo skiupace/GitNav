@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/skiupace/gitnav/app"
+	"github.com/skiupace/gitnav/internal/git"
 )
 
 func main() {
@@ -20,6 +21,11 @@ func main() {
 	absPath, err := filepath.Abs(repoPath)
 	if err != nil {
 		fmt.Println("Invalid path:", err)
+		return
+	}
+
+	if _, err := git.NewRepo(absPath); err != nil {
+		fmt.Println("error:", err, "-", absPath)
 		return
 	}
 
