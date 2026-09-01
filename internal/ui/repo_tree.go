@@ -73,9 +73,6 @@ func newRootNode() *tview.TreeNode {
 func newFileNode(gnode *git.Node) *tview.TreeNode {
 	icon, color := GetIcon(gnode.Name, gnode.IsDir)
 
-	// SetColor also sets the selected background to the icon color, which
-	// reads badly; give the selected state a controlled, theme-friendly
-	// style instead (node color on the palette's gray).
 	node := tview.NewTreeNode(icon + " " + gnode.Name).
 		SetReference(gnode.Path).
 		SetColor(color).

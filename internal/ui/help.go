@@ -11,8 +11,6 @@ import (
 	"github.com/skiupace/gitnav/keymap"
 )
 
-// HelpPanel builds the keybinding cheat sheet. Any non-scroll key fires
-// onClose. Binds sharing a description merge onto one row.
 func HelpPanel(onClose func()) *tview.TextView {
 	tv := tview.NewTextView().
 		SetDynamicColors(true).
@@ -54,8 +52,6 @@ func HelpPanel(onClose func()) *tview.TextView {
 	return tv
 }
 
-// formatBinds renders a keymap as aligned rows, merging binds that share a
-// description (e.g. "j" and "<Down>" -> "j / <Down>").
 func formatBinds(m keymap.Map) string {
 	var order []string
 	keysFor := map[string][]string{}

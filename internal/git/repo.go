@@ -35,7 +35,7 @@ type Info struct {
 	Dirty   int
 }
 
-// Info returns HEAD and worktree status. Errors are swallowed;
+// Info returns HEAD and worktree status. Errors are swallowed.
 // fields simply stay zero-valued when unavailable.
 func (r *Repo) Info() Info {
 	var in Info

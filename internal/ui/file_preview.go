@@ -16,12 +16,10 @@ import (
 	"github.com/skiupace/gitnav/commands"
 )
 
-// PreviewPanel holds the preview text view and exposes update methods.
 type PreviewPanel struct {
 	TextView *tview.TextView
 }
 
-// NewPreviewPanel creates a scrollable, syntax-highlighted preview panel.
 func NewPreviewPanel() *PreviewPanel {
 	tv := tview.NewTextView().
 		SetDynamicColors(true).
@@ -79,7 +77,6 @@ func NewPreviewPanel() *PreviewPanel {
 		return innerX, innerY, innerW, innerH
 	})
 
-	// Input capture for vim scrolling and arrow keys
 	tv.SetInputCapture(scrollCapture(tv))
 
 	return pp
@@ -111,7 +108,6 @@ func scrollCapture(tv *tview.TextView) func(event *tcell.EventKey) *tcell.EventK
 	}
 }
 
-// UpdatePreview reads a file, applies syntax highlighting, and displays it.
 func (pp *PreviewPanel) UpdatePreview(filePath string) {
 	pp.TextView.SetTitle(fmt.Sprintf(" Preview: %s ", filepath.Base(filePath)))
 
@@ -121,7 +117,6 @@ func (pp *PreviewPanel) UpdatePreview(filePath string) {
 		return
 	}
 
-	// Check for binary content
 	if isBinaryContent(content) {
 		pp.TextView.SetText("[gray](binary file — cannot preview)[-]")
 		return
@@ -133,32 +128,28 @@ func (pp *PreviewPanel) UpdatePreview(filePath string) {
 	pp.TextView.ScrollToBeginning()
 }
 
-// ClearPreview resets the preview panel to its default state.
 func (pp *PreviewPanel) ClearPreview() {
 	pp.TextView.SetTitle(" Preview: <select-file> ")
 	pp.TextView.SetText("")
 }
 
-// isBinaryContent checks if content contains null bytes or is not valid UTF-8.
 func isBinaryContent(data []byte) bool {
 	if len(data) == 0 {
 		return false
 	}
-	// Check a sample of the content
+
 	checkSize := len(data)
 	if checkSize > 8192 {
 		checkSize = 8192
 	}
 	sample := data[:checkSize]
 
-	// Check for null bytes
 	for _, b := range sample {
 		if b == 0 {
 			return true
 		}
 	}
 
-	// Check for valid UTF-8
 	return !utf8.Valid(sample)
 }
 
@@ -166,12 +157,12 @@ func isBinaryContent(data []byte) bool {
 // returns tview-compatible color-tagged text with line numbers. Token colors
 // are mapped to the terminal's 16-color ANSI palette, so highlighting
 // follows the user's terminal theme instead of a fixed truecolor scheme.
-// Monokai remains the source of token classification.
 func highlightContent(content, filePath string) string {
 	lexer := lexers.Match(filePath)
 	if lexer == nil {
 		lexer = lexers.Analyse(content)
 	}
+
 	if lexer == nil {
 		lexer = lexers.Fallback
 	}
@@ -280,9 +271,10 @@ func addLineNumbers(content string) string {
 	var sb strings.Builder
 	for i, line := range lines {
 		lineNum := i + 1
-		// Gray line number + separator + content
 		numStr := fmt.Sprintf("%*d", gutterWidth, lineNum)
+
 		sb.WriteString(fmt.Sprintf("[gray]%s │[-] %s", numStr, line))
+
 		if i < len(lines)-1 {
 			sb.WriteString("\n")
 		}

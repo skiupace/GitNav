@@ -21,9 +21,6 @@ func init() {
 		app: tview.NewApplication(),
 	}
 
-	// Colors follow the terminal's own theme: backgrounds default, accents
-	// use the 16-color ANSI palette (tcell named colors resolve to palette
-	// indices, so they adapt to the user's color scheme).
 	Styles = &tview.Theme{
 		PrimitiveBackgroundColor:    tcell.ColorDefault,
 		ContrastBackgroundColor:     tcell.ColorDefault,
@@ -45,8 +42,6 @@ func (a *Application) Run(repoPath string) error {
 	layout := ui.BaseLayout(repoPath, a.app)
 
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// 'q' is handled by the layout (suppressed while the search
-		// input field has focus); Ctrl+C always quits.
 		if event.Key() == tcell.KeyCtrlC {
 			a.app.Stop()
 			return nil

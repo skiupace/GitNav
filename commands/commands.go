@@ -5,13 +5,11 @@ type Command uint8
 const (
 	Noop Command = iota
 
-	// Movement: Basic
 	MoveUp
 	MoveDown
 	MoveLeft
 	MoveRight
 
-	// Operations
 	Search
 	Quit
 	ExpandAll
@@ -20,20 +18,16 @@ const (
 	ToggleSidebar
 	Select
 
-	// Preview scrolling
 	ScrollUp
 	ScrollDown
 	ScrollTop
 	ScrollBottom
 
-	// Editor
 	OpenEditor
 
-	// Focus switching
 	FocusPreview
 	FocusTree
 
-	// UI
 	Help
 )
 
@@ -42,7 +36,6 @@ func (c Command) String() string {
 	case Noop:
 		return "Noop"
 
-	// Movement: Basic
 	case MoveUp:
 		return "MoveUp"
 	case MoveDown:
@@ -52,7 +45,6 @@ func (c Command) String() string {
 	case MoveRight:
 		return "MoveRight"
 
-	// Operations
 	case Search:
 		return "Search"
 	case Quit:
@@ -68,7 +60,6 @@ func (c Command) String() string {
 	case Select:
 		return "Select"
 
-	// Preview scrolling
 	case ScrollUp:
 		return "ScrollUp"
 	case ScrollDown:
@@ -78,17 +69,14 @@ func (c Command) String() string {
 	case ScrollBottom:
 		return "ScrollBottom"
 
-	// Editor
 	case OpenEditor:
 		return "OpenEditor"
 
-	// Focus switching
 	case FocusPreview:
 		return "FocusPreview"
 	case FocusTree:
 		return "FocusTree"
 
-	// UI
 	case Help:
 		return "Help"
 	}

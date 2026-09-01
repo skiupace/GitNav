@@ -12,7 +12,7 @@ import (
 
 // SearchPanel incrementally filters the repo tree as you type. tview nodes
 // have no visibility control, so filtering rebuilds the tree from the
-// pristine git.Node data; the previous expansion state is snapshotted by
+// tree data. the previous expansion state is snapshotted by
 // path and restored when the query is cleared. Enter jumps to the first
 // matching file, Escape clears the filter.
 type SearchPanel struct {

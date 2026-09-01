@@ -32,14 +32,12 @@ func scanDir(path string, ign *ignore.GitIgnore, repoRoot string) (*Node, error)
 		return nil, err
 	}
 
-	// Skip .git (directory in normal repos, file in worktrees)
 	if info.Name() == ".git" {
 		return nil, nil
 	}
 
 	relPath, _ := filepath.Rel(repoRoot, path)
 
-	// Skip if ignored
 	if ign != nil && ign.MatchesPath(relPath) {
 		return nil, nil
 	}

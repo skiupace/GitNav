@@ -27,7 +27,6 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	stats := NewStatsPanel(repo)
 	search := NewSearchPanel(tree, rootNode, preview)
 
-	// Open file in the user's editor, suspending tview until it exits.
 	openInEditor := func(filePath string) {
 		a.Suspend(func() {
 			cmd := exec.Command(pickEditor(), filePath)
@@ -37,14 +36,12 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 		stats.Refresh()
 	}
 
-	// Wire tree node changes to update the preview
 	tree.SetChangedFunc(func(node *tview.TreeNode) {
 		filePath, ok := node.GetReference().(string)
 		if !ok {
 			return
 		}
 
-		// Only preview files, not directories
 		info, err := os.Stat(filePath)
 		if err != nil || info.IsDir() {
 			preview.ClearPreview()
@@ -54,7 +51,6 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 		preview.UpdatePreview(filePath)
 	})
 
-	// Handle Enter on tree: open file in editor, toggle dirs
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		filePath, ok := node.GetReference().(string)
 		if !ok {
@@ -73,24 +69,18 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 		}
 	})
 
-	// MAIN ROW (tree + preview)
 	top := tview.NewFlex().
 		AddItem(tree, 0, 1, true).
 		AddItem(preview.TextView, 0, 3, false)
 
-	// BOTTOM ROW (search + stats). Fixed height: a 1:3 proportional split
-	// inside a 3-row flex gave the search box zero rows.
 	bottom := tview.NewFlex().
 		AddItem(search.Field, 0, 1, false).
 		AddItem(stats.View, 0, 3, false)
 
-	// ROOT LAYOUT
 	root := tview.NewFlex().SetDirection(tview.FlexRow)
 	root.AddItem(top, 0, 1, true)
 	root.AddItem(bottom, 3, 0, false)
 
-	// Focusable panels (tree -> preview -> search); stats is passive.
-	// Conceptually a 2x2 grid: tree, preview / search, (stats).
 	panels := []tview.Primitive{tree, preview.TextView, search.Field}
 	boxes := []*tview.Box{tree.Box, preview.TextView.Box, search.Field.Box}
 	focusIndex := 0
@@ -105,7 +95,6 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 		}
 	}
 
-	// Vim-style mode indicator: NORMAL in the panes, INSERT in search.
 	setMode := func(insert bool) {
 		if insert {
 			search.Field.SetTitle(" Search · INSERT ")
@@ -121,11 +110,10 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 		setMode(idx == 2)
 	}
 
-	// Search hands focus back to the tree (Enter/Esc).
 	search.FocusTree = func() { setFocus(0) }
 
 	// Vim pane navigation: uppercase HJKL and Ctrl+arrows move focus
-	// between panes; lowercase keys stay free for in-pane navigation.
+	// between panes. lowercase keys stay free for in-pane navigation.
 	moveFocus := func(cmd commands.Command) {
 		switch cmd {
 		case commands.FocusSidebar: // left
@@ -159,9 +147,6 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 		}
 	}
 
-	// Global keys: Tab/Shift+Tab cycle panels; '/' 'i' 'H' 'J' 'K' 'L',
-	// Ctrl+arrows and 'q'/'?' act outside the search field, where letters
-	// are reserved for typing.
 	root.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyTab:
@@ -197,7 +182,7 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	return root
 }
 
-// pickEditor returns the editor to open files with: $VISUAL, $EDITOR, or vi.
+// pickEditor returns the editor to open files with: $VISUAL, $EDITOR, or vim.
 func pickEditor() string {
 	if e := os.Getenv("VISUAL"); e != "" {
 		return e
@@ -205,5 +190,5 @@ func pickEditor() string {
 	if e := os.Getenv("EDITOR"); e != "" {
 		return e
 	}
-	return "vi"
+	return "vim"
 }
