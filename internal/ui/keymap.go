@@ -96,7 +96,7 @@ var GlobalKeyMap = keymap.Map{
 	{
 		Key:         keymap.Key{Char: '?'},
 		Cmd:         commands.Help,
-		Description: "Toggle keybinding cheat sheet",
+		Description: "Toggle keybinding cheatsheet",
 	},
 }
 

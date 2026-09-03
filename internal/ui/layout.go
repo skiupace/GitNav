@@ -116,31 +116,32 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	// between panes. lowercase keys stay free for in-pane navigation.
 	moveFocus := func(cmd commands.Command) {
 		switch cmd {
-		case commands.FocusSidebar: // left
+		case commands.FocusSidebar:
 			if focusIndex == 1 {
 				setFocus(0)
 			}
-		case commands.FocusPreview: // right
+		case commands.FocusPreview:
 			if focusIndex != 1 {
 				setFocus(1)
 			}
-		case commands.Search: // down / insert
+		case commands.Search:
 			if focusIndex != 2 {
 				setFocus(2)
 			}
-		case commands.FocusTree: // up
+		case commands.FocusTree:
 			if focusIndex == 2 {
 				setFocus(0)
 			}
 		}
 	}
 
-	// Keybinding cheat sheet overlay.
+	var toggleHelp func()
 	helpVisible := false
-	toggleHelp := func() {
+
+	toggleHelp = func() {
 		helpVisible = !helpVisible
 		if helpVisible {
-			// a.SetRoot(HelpPanel(toggleHelp), true)
+			a.SetRoot(HelpPanel(toggleHelp), true)
 		} else {
 			a.SetRoot(root, true)
 			setFocus(focusIndex)
@@ -182,7 +183,6 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	return root
 }
 
-// pickEditor returns the editor to open files with: $VISUAL, $EDITOR, or vim.
 func pickEditor() string {
 	if e := os.Getenv("VISUAL"); e != "" {
 		return e
@@ -190,5 +190,5 @@ func pickEditor() string {
 	if e := os.Getenv("EDITOR"); e != "" {
 		return e
 	}
-	return "vim"
+	return "nvim"
 }
