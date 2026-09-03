@@ -14,7 +14,7 @@ A powerful terminal-based Git repository navigator built with Go and [tview](htt
 - **Git Integration**: Display branch information, and repository status \[clean, dirty\]
 - **Keyboard-Driven**: Efficient navigation with vim-style keybindings
 - **Statistics Dashboard**: View basic repository statistics including commit information
-- **Help System**: Built-in help panel showing all available keybindings (_coming soon_)
+- **Help System**: Built-in help panel showing all available keybindings
 
 ## Installation
 
@@ -27,7 +27,7 @@ A powerful terminal-based Git repository navigator built with Go and [tview](htt
 
 ```bash
 # Clone the repository
-git clone https://github.com/skiupace/gitnav.git -b gitnav-go
+git clone https://github.com/skiupace/gitnav.git
 cd gitnav
 
 # Build the binary
@@ -70,8 +70,8 @@ GitNav uses vim-style keybindings for efficient navigation:
 | --------- | --------------------------------------- |
 | `j` / `↓` | Move down                               |
 | `k` / `↑` | Move up                                 |
-| `h` / `←` | Collapse directory / Go back (_soon_)   |
-| `l` / `→` | Expand directory / Select file (_soon_) |
+| `h` / `←` | Collapse directory / Go back   |
+| `l` / `→` | Expand directory / Select file |
 | `g`       | Go to top                               |
 | `G`       | Go to bottom                            |
 
@@ -79,10 +79,8 @@ GitNav uses vim-style keybindings for efficient navigation:
 
 | Key     | Action                                                     |
 | ------- | ---------------------------------------------------------- |
-| `Enter` | Open file in preview                                       |
-| `o`     | Open file in external editor (uses `$EDITOR` or `$VISUAL`) |
-| `y`     | Copy file path to clipboard                                |
-| `f`     | Toggle file preview                                        |
+| `Enter` | Open file in external editor (uses `$EDITOR` or `$VISUAL`) |
+| `y`     | Copy file path to clipboard (_soon_)                               |
 
 #### Search
 
@@ -98,8 +96,7 @@ GitNav uses vim-style keybindings for efficient navigation:
 | Key | Action |
 |-----|--------|
 | `Tab` | Switch between panels |
-| `r` | Refresh repository view |
-| `H` | Toggle help panel |
+| `?` | Toggle help panel |
 | `q` / `Ctrl+c` | Quit application |
 
 #### Git Operations (_soon_)
@@ -114,7 +111,7 @@ GitNav uses vim-style keybindings for efficient navigation:
 
 GitNav respects the following environment variables:
 
-- `EDITOR` or `VISUAL`: Default editor for opening files (default: `vim`)
+- `EDITOR` or `VISUAL`: Default editor for opening files (default: `nvim`)
 - `GITNAV_CONFIG`: Path to configuration file (future feature)
 
 ## Development
