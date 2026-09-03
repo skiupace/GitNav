@@ -101,7 +101,14 @@ func scrollCapture(tv *tview.TextView) func(event *tcell.EventKey) *tcell.EventK
 			tv.ScrollToBeginning()
 			return nil
 		case commands.ScrollBottom:
-			tv.ScrollToEnd()
+			totalLines := tv.GetOriginalLineCount()
+			_, _, _, h := tv.GetInnerRect()
+			row := totalLines - h
+			if row < 0 {
+				row = 0
+			}
+			_, col := tv.GetScrollOffset()
+			tv.ScrollTo(row, col)
 			return nil
 		}
 		return event
