@@ -30,11 +30,19 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 		case commands.MoveUp:
 			return tcell.NewEventKey(tcell.KeyUp, 0, tcell.ModNone)
 		case commands.MoveLeft:
-			syncFolderIcon(tree.GetCurrentNode(), false)
-			return tcell.NewEventKey(tcell.KeyLeft, 0, tcell.ModNone)
+			node := tree.GetCurrentNode()
+			if node.IsExpanded() {
+				syncFolderIcon(node, false)
+				node.SetExpanded(false)
+			}
+			return nil
 		case commands.MoveRight:
-			syncFolderIcon(tree.GetCurrentNode(), true)
-			return tcell.NewEventKey(tcell.KeyRight, 0, tcell.ModNone)
+			node := tree.GetCurrentNode()
+			if !node.IsExpanded() {
+				syncFolderIcon(node, true)
+				node.SetExpanded(true)
+			}
+			return nil
 		case commands.Select:
 			toggleExpansion(tree.GetCurrentNode())
 			return nil
