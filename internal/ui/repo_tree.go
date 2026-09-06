@@ -43,6 +43,10 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 				node.SetExpanded(true)
 			}
 			return nil
+		case commands.ScrollTop:
+			return tcell.NewEventKey(tcell.KeyHome, 0, tcell.ModNone)
+		case commands.ScrollBottom:
+			return tcell.NewEventKey(tcell.KeyEnd, 0, tcell.ModNone)
 		case commands.Select:
 			toggleExpansion(tree.GetCurrentNode())
 			return nil
@@ -73,7 +77,7 @@ func addChildren(tnode *tview.TreeNode, gnode *git.Node) {
 }
 
 func newRootNode() *tview.TreeNode {
-	return tview.NewTreeNode("").
+	return tview.NewTreeNode("\ue21c").
 		SetColor(tcell.ColorBlue).
 		SetSelectable(false)
 }
