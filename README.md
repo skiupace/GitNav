@@ -75,12 +75,12 @@ GitNav uses vim-style keybindings for efficient navigation:
 | `g`       | Go to top                               |
 | `G`       | Go to bottom                            |
 
-#### File Operations (_soon_)
+#### File Operations
 
 | Key     | Action                                                     |
 | ------- | ---------------------------------------------------------- |
 | `Enter` | Open file in external editor (uses `$EDITOR` or `$VISUAL`) |
-| `y`     | Copy file path to clipboard (_soon_)                               |
+| `y`     | Copy file path to clipboard                               |
 
 #### Search
 
@@ -134,7 +134,7 @@ go test ./internal/ui/...
 
 ```bash
 # Build optimized binary
-go build -ldflags="-s -w" -o gitnav
+go build -trimpath -ldflags="-s -w" -o gitnav
 
 # Build for multiple platforms
 GOOS=linux GOARCH=amd64 go build -o gitnav-linux-amd64
