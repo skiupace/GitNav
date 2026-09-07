@@ -23,7 +23,9 @@ func HelpPanel(onClose func()) *tview.TextView {
 
 	var b strings.Builder
 	section := func(name, binds string) {
-		b.WriteString("[::b]" + name + "[-]\n")
+		b.WriteString("[::b]")
+		b.WriteString(name)
+		b.WriteString("[::-]\n")
 		b.WriteString(binds)
 		b.WriteString("\n")
 	}
