@@ -33,11 +33,15 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	var (
 		notifyTimer *time.Timer
 		notifyMu    sync.Mutex
+		notifySeq   uint64
 	)
 
 	notify := func(msg string) {
 		notifyMu.Lock()
 		defer notifyMu.Unlock()
+
+		notifySeq++
+		currSeq := notifySeq
 
 		if notifyTimer != nil {
 			notifyTimer.Stop()
@@ -48,7 +52,11 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 
 		notifyTimer = time.AfterFunc(2*time.Second, func() {
 			a.QueueUpdateDraw(func() {
-				stats.Refresh()
+				notifyMu.Lock()
+				defer notifyMu.Unlock()
+				if currSeq == notifySeq {
+					stats.Refresh()
+				}
 			})
 		})
 	}
