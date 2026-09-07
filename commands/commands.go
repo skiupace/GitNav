@@ -24,6 +24,7 @@ const (
 	ScrollBottom
 
 	OpenEditor
+	CopyPath
 
 	FocusPreview
 	FocusTree
@@ -71,6 +72,8 @@ func (c Command) String() string {
 
 	case OpenEditor:
 		return "OpenEditor"
+	case CopyPath:
+		return "CopyPath"
 
 	case FocusPreview:
 		return "FocusPreview"

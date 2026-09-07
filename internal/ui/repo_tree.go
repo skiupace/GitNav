@@ -10,18 +10,25 @@ import (
 	"github.com/skiupace/gitnav/internal/git"
 )
 
+type TreePanel struct {
+	*tview.TreeView
+	OnCopyPath func()
+}
+
 // RepoTree builds the file tree view from the scanned repo data.
-func RepoTree(rootNode *git.Node) *tview.TreeView {
+func RepoTree(rootNode *git.Node) *TreePanel {
 	root := newRootNode()
 
-	tree := tview.NewTreeView().
+	treeView := tview.NewTreeView().
 		SetRoot(root).
 		SetCurrentNode(root)
+
+	tp := &TreePanel{TreeView: treeView}
 
 	// Note: SetSelectedFunc is set by BaseLayout in layout.go
 	// to handle both directory toggling and opening files in editor.
 
-	tree.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	treeView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		cmd := TreeKeyMap.Resolve(event)
 
 		switch cmd {
@@ -30,14 +37,14 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 		case commands.MoveUp:
 			return tcell.NewEventKey(tcell.KeyUp, 0, tcell.ModNone)
 		case commands.MoveLeft:
-			node := tree.GetCurrentNode()
+			node := treeView.GetCurrentNode()
 			if node.IsExpanded() {
 				syncFolderIcon(node, false)
 				node.SetExpanded(false)
 			}
 			return nil
 		case commands.MoveRight:
-			node := tree.GetCurrentNode()
+			node := treeView.GetCurrentNode()
 			if !node.IsExpanded() {
 				syncFolderIcon(node, true)
 				node.SetExpanded(true)
@@ -47,8 +54,13 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 			return tcell.NewEventKey(tcell.KeyHome, 0, tcell.ModNone)
 		case commands.ScrollBottom:
 			return tcell.NewEventKey(tcell.KeyEnd, 0, tcell.ModNone)
+		case commands.CopyPath:
+			if tp.OnCopyPath != nil {
+				tp.OnCopyPath()
+			}
+			return nil
 		case commands.Select:
-			toggleExpansion(tree.GetCurrentNode())
+			toggleExpansion(treeView.GetCurrentNode())
 			return nil
 		}
 
@@ -57,12 +69,12 @@ func RepoTree(rootNode *git.Node) *tview.TreeView {
 
 	addChildren(root, rootNode)
 
-	tree.Box.SetBorder(true).
+	treeView.Box.SetBorder(true).
 		SetBorderColor(tcell.ColorBlue).
 		SetTitleAlign(tview.AlignLeft).
 		SetTitle(" " + rootNode.Name + " ")
 
-	return tree
+	return tp
 }
 
 func addChildren(tnode *tview.TreeNode, gnode *git.Node) {

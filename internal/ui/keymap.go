@@ -68,6 +68,11 @@ var TreeKeyMap = keymap.Map{
 		Description: "Go to bottom",
 	},
 	{
+		Key:         keymap.Key{Char: 'y'},
+		Cmd:         commands.CopyPath,
+		Description: "Copy file path to clipboard",
+	},
+	{
 		Key:         keymap.Key{Code: tcell.KeyEnter},
 		Cmd:         commands.Select,
 		Description: "Open file in editor / toggle folder",

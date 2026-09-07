@@ -3,6 +3,9 @@ package ui
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
+	"sync"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -25,7 +28,50 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	tree := RepoTree(rootNode)
 	preview := NewPreviewPanel()
 	stats := NewStatsPanel(repo)
-	search := NewSearchPanel(tree, rootNode, preview)
+	search := NewSearchPanel(tree.TreeView, rootNode, preview)
+
+	var (
+		notifyTimer *time.Timer
+		notifyMu    sync.Mutex
+	)
+
+	notify := func(msg string) {
+		notifyMu.Lock()
+		defer notifyMu.Unlock()
+
+		if notifyTimer != nil {
+			notifyTimer.Stop()
+		}
+
+		stats.View.SetText(" " + msg)
+		stats.View.SetTitle("[green]notice[-]")
+
+		notifyTimer = time.AfterFunc(2*time.Second, func() {
+			a.QueueUpdateDraw(func() {
+				stats.Refresh()
+			})
+		})
+	}
+
+	copyCurrentPath := func() {
+		node := tree.GetCurrentNode()
+		if node == nil {
+			return
+		}
+		path, ok := node.GetReference().(string)
+		if !ok || path == "" {
+			return
+		}
+		rel, err := filepath.Rel(repoPath, path)
+		if err != nil {
+			rel = path
+		}
+		if err := writeClipboard(rel); err == nil {
+			notify(rel + " copied to clipboard")
+		}
+	}
+
+	tree.OnCopyPath = copyCurrentPath
 
 	openInEditor := func(filePath string) {
 		a.Suspend(func() {
@@ -70,7 +116,7 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	})
 
 	top := tview.NewFlex().
-		AddItem(tree, 0, 1, true).
+		AddItem(tree.TreeView, 0, 1, true).
 		AddItem(preview.TextView, 0, 3, false)
 
 	bottom := tview.NewFlex().
@@ -81,7 +127,7 @@ func BaseLayout(repoPath string, a *tview.Application) tview.Primitive {
 	root.AddItem(top, 0, 1, true)
 	root.AddItem(bottom, 3, 0, false)
 
-	panels := []tview.Primitive{tree, preview.TextView, search.Field}
+	panels := []tview.Primitive{tree.TreeView, preview.TextView, search.Field}
 	boxes := []*tview.Box{tree.Box, preview.TextView.Box, search.Field.Box}
 	focusIndex := 0
 
