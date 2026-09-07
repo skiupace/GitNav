@@ -51,9 +51,17 @@ func RepoTree(rootNode *git.Node) *TreePanel {
 			}
 			return nil
 		case commands.ScrollTop:
-			return tcell.NewEventKey(tcell.KeyHome, 0, tcell.ModNone)
+			first, _ := visibleTreeNodes(root)
+			if first != nil {
+				treeView.SetCurrentNode(first)
+			}
+			return nil
 		case commands.ScrollBottom:
-			return tcell.NewEventKey(tcell.KeyEnd, 0, tcell.ModNone)
+			_, last := visibleTreeNodes(root)
+			if last != nil {
+				treeView.SetCurrentNode(last)
+			}
+			return nil
 		case commands.CopyPath:
 			if tp.OnCopyPath != nil {
 				tp.OnCopyPath()
@@ -75,6 +83,23 @@ func RepoTree(rootNode *git.Node) *TreePanel {
 		SetTitle(" " + rootNode.Name + " ")
 
 	return tp
+}
+
+func visibleTreeNodes(root *tview.TreeNode) (first, last *tview.TreeNode) {
+	var traverse func(n *tview.TreeNode)
+	traverse = func(n *tview.TreeNode) {
+		for _, child := range n.GetChildren() {
+			if first == nil {
+				first = child
+			}
+			last = child
+			if child.IsExpanded() {
+				traverse(child)
+			}
+		}
+	}
+	traverse(root)
+	return
 }
 
 func addChildren(tnode *tview.TreeNode, gnode *git.Node) {
