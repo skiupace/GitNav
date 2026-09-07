@@ -48,6 +48,31 @@ var TreeKeyMap = keymap.Map{
 		Description: "Expand / Go to child",
 	},
 	{
+		Key:         keymap.Key{Char: 'g'},
+		Cmd:         commands.ScrollTop,
+		Description: "Go to top",
+	},
+	{
+		Key:         keymap.Key{Code: tcell.KeyHome},
+		Cmd:         commands.ScrollTop,
+		Description: "Go to top",
+	},
+	{
+		Key:         keymap.Key{Char: 'G'},
+		Cmd:         commands.ScrollBottom,
+		Description: "Go to bottom",
+	},
+	{
+		Key:         keymap.Key{Code: tcell.KeyEnd},
+		Cmd:         commands.ScrollBottom,
+		Description: "Go to bottom",
+	},
+	{
+		Key:         keymap.Key{Char: 'y'},
+		Cmd:         commands.CopyPath,
+		Description: "Copy file path to clipboard",
+	},
+	{
 		Key:         keymap.Key{Code: tcell.KeyEnter},
 		Cmd:         commands.Select,
 		Description: "Open file in editor / toggle folder",
@@ -127,7 +152,17 @@ var PreviewKeyMap = keymap.Map{
 		Description: "Scroll to top",
 	},
 	{
+		Key:         keymap.Key{Code: tcell.KeyHome},
+		Cmd:         commands.ScrollTop,
+		Description: "Scroll to top",
+	},
+	{
 		Key:         keymap.Key{Char: 'G'},
+		Cmd:         commands.ScrollBottom,
+		Description: "Scroll to bottom",
+	},
+	{
+		Key:         keymap.Key{Code: tcell.KeyEnd},
 		Cmd:         commands.ScrollBottom,
 		Description: "Scroll to bottom",
 	},
