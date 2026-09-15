@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+set -e
+
+echo "Formatting Go code..."
+go fmt ./...
+
+echo "Running go vet (Static Analysis)..."
+go vet ./...
+
+echo "Verifying build..."
+go build -o /dev/null ./...
+
+echo "Running tests..."
+go test -short -race ./...
+
+echo "Pre-commit checks passed!"
